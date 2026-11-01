@@ -84,6 +84,7 @@ const { useState, useEffect, useMemo, useCallback, useRef } = React;
 // ==========================================
 
 // [Helper] 判斷是否為住宿地點 (關鍵字過濾)
+const CUR = Object.assign({ code: "JPY", sym: "¥", label: "日圓" }, window.BASE_CUR || {});
 const FEAT = (k, d = true) => (window.FEATURES && window.FEATURES[k] != null ? window.FEATURES[k] : d);
 const AIX = () => Object.assign({ region: "日本山陰山陽冬季自駕旅遊", country: "日本", officialSrc: "日文官方資訊", year: 2027, monthNote: "1 月底冬季", seasonRule: "2027 年 1 月的臨時公告若尚未公布，請依「固定星期公休」與「歷年 1 月底冬季慣例」給預警，並在句尾加「（依歷年慣例）」。", geoHint: "本行程只在日本「兵庫県・鳥取県・岡山県」範圍內，請確認找到的分店地址位於這三縣境內（同名他縣分店不算）", radarRole: "日本在地活動情報員", radarSources: "いこーよ、Walkerplus、神戸ジャーナル、岡山観光WEB、とっとり旅、フリマガイド、こくちーずプロ、各館與商場官網", radarLang: "日文", radarTypes: "企画展、工作坊、蚤之市、市集、快閃店", emergency: "日本緊急電話：警察 110・救護車／消防 119。" }, window.AI_CONTEXT || {});
 const RETURN_RE = () => new RegExp((window.RETURN_INFO && window.RETURN_INFO.matchRe) || "還車");
@@ -484,8 +485,8 @@ const ExpenseModal = ({
                 {CATEGORY_META[k].icon} {CATEGORY_META[k].label}
               </button>
             ))}
-            <span className="mx-1 border-l border-gray-200"></span>
-            {[
+            {FEAT("currency") && <span className="mx-1 border-l border-gray-200"></span>}
+            {FEAT("currency") && [
               { c: "JPY", t: "¥ 日圓" },
               { c: "TWD", t: "NT$ 台幣" },
             ].map(({ c, t }) => (
@@ -502,7 +503,7 @@ const ExpenseModal = ({
               </button>
             ))}
           </div>
-          {(expenseForm.currency || "JPY") === "TWD" && (
+          {FEAT("currency") && (expenseForm.currency || "JPY") === "TWD" && (
             <div className="text-[11px] text-[#A9BFA8] font-bold -mt-2 mb-3 ml-1">
               台幣消費將以 1:{(twdJpyRate || 4.6).toFixed(2)} 自動轉為日圓入帳
             </div>
@@ -683,7 +684,7 @@ const ExpenseModal = ({
                   </div>
                   <div className="flex gap-3 items-center">
                     <span className="font-mono font-bold text-gray-800">
-                      ¥{(r.amount || 0).toLocaleString()}
+                      {CUR.sym}{(r.amount || 0).toLocaleString()}
                       {r.currency === "TWD" && r.origAmount != null && (
                         <span className="block text-[9px] text-gray-400 text-right font-normal">
                           NT${r.origAmount.toLocaleString()}
@@ -753,7 +754,7 @@ const ExpenseModal = ({
                       >
                         <span className="text-gray-700">{it.name}</span>
                         <span className="font-mono text-gray-800 shrink-0">
-                          ¥{(it.price || 0).toLocaleString()}
+                          {CUR.sym}{(it.price || 0).toLocaleString()}
                         </span>
                       </div>
                     ))}
@@ -770,7 +771,7 @@ const ExpenseModal = ({
                   合計（實付為準）
                 </span>
                 <span className="font-mono font-black text-lg text-gray-900">
-                  ¥{(detailRec.amount || 0).toLocaleString()}
+                  {CUR.sym}{(detailRec.amount || 0).toLocaleString()}
                   {detailRec.currency === "TWD" &&
                     detailRec.origAmount != null && (
                       <span className="block text-[10px] text-gray-400 text-right font-normal">
@@ -962,7 +963,7 @@ const DailyDetailModal = ({
                   key={k}
                   className="px-2 py-1 rounded-full text-[10px] font-bold bg-gray-50 border border-gray-200 text-gray-600"
                 >
-                  {catMeta(k).icon} {catMeta(k).label} ¥{v.toLocaleString()}
+                  {catMeta(k).icon} {catMeta(k).label} {CUR.sym}{v.toLocaleString()}
                 </span>
               ))}
           </div>
@@ -1026,7 +1027,7 @@ const DailyDetailModal = ({
                 )}
               </div>
               <div className="font-mono font-bold text-[#E4C2C1] text-lg text-right">
-                ¥{item.amount.toLocaleString()}
+                {CUR.sym}{item.amount.toLocaleString()}
                 {item.currency === "TWD" && item.origAmount != null && (
                   <div className="text-[9px] text-gray-400 font-normal">
                     NT${item.origAmount.toLocaleString()}
@@ -1039,9 +1040,9 @@ const DailyDetailModal = ({
 
         <div className="mt-4 pt-4 border-t border-gray-100 space-y-1">
           <div className="flex justify-between">
-            <span className="text-sm font-bold text-gray-500">總計 (JPY)</span>
+            <span className="text-sm font-bold text-gray-500">總計 ({CUR.code})</span>
             <span className="text-xl font-mono font-black text-[#E4C2C1]">
-              ¥{totalTWD.toLocaleString()}
+              {CUR.sym}{totalTWD.toLocaleString()}
             </span>
           </div>
           <div className="flex justify-between">
@@ -2205,7 +2206,6 @@ const InfoTab = () => {
 
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-6 duration-700 pb-20">
-      <TripChecklist />
       <HighwayCard />
       {FEAT("snow") && <WeatherSnowCard />}
       {FEAT("snow") && <SnowRiskMap />}
@@ -2343,43 +2343,11 @@ const InfoTab = () => {
       </div>
       )}
 
-      <div className="glass-panel p-6 rounded-3xl bg-white border-gray-100 shadow-lg">
-        <h3 className="font-bold text-lg mb-4 text-gray-800 flex items-center gap-2">
-          <Icons.Hotel size={20} className="text-[#E8D595]" /> 住宿安排
+      <div className="glass-panel p-5 rounded-3xl bg-white border-gray-100 shadow-lg space-y-3">
+        <h3 className="font-bold text-lg text-gray-800 flex items-center gap-2">
+          <Icons.Hotel size={20} className="text-[#7B52AE]" /> 住宿
         </h3>
-        <div className="space-y-3">
-          {hotelInfo.map((h, i) => {
-            // 修正網址並補上遺漏的 $ 符號
-            const safeLink = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
-              h.name + " " + (h.location || "")
-            )}`;
-            return (
-              <div
-                key={i}
-                className="flex items-center gap-3 p-3 rounded-xl bg-gray-50 border border-gray-100 mb-2 last:mb-0"
-              >
-                <div className="bg-[#A9BFA8] text-white font-bold text-xs h-10 w-10 flex items-center justify-center rounded-lg">
-                  {h.day.split("/")[1]}日
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="text-sm font-bold text-gray-800 truncate">
-                    {h.name}
-                  </div>
-                  <div className="text-[10px] text-gray-500 truncate">
-                    {h.location}
-                  </div>
-                </div>
-                <a
-                  href={safeLink}
-                  target="_blank"
-                  className="p-2 bg-white border border-gray-200 rounded-full text-gray-400 hover:text-[#E4C2C1]"
-                >
-                  <Icons.Navigation size={14} />
-                </a>
-              </div>
-            );
-          })}
-        </div>
+        {hotelInfo.map((h, i) => <HotelCard key={i} h={h} label={h.day + " 入住"} color="#7B52AE" />)}
       </div>
 
     </div>
@@ -2408,9 +2376,9 @@ const StatsTab = ({
             maximumFractionDigits: 0,
           })}
         </div>
-        <div className="text-xs text-gray-400 font-mono mb-6">
-          ( ¥{stats.totalJpy.toLocaleString()} )
-        </div>
+        {selectedCurrency.code !== CUR.code ? <div className="text-xs text-gray-400 font-mono mb-6">
+          ( {CUR.sym}{stats.totalJpy.toLocaleString()} )
+        </div> : <div className="mb-6" />}
         <button
           onClick={handleOpenEmailClick}
           className="w-full py-3 bg-[#F9F7F5] border border-gray-200 text-[#A9BFA8] rounded-xl text-sm font-bold flex items-center justify-center gap-2 hover:bg-white hover:shadow-md transition-all"
@@ -3750,9 +3718,16 @@ const PillBtn = ({ href, onClick, dark, children, style }) => {
 // ============================================================================
 const MetroTab = ({
   tripData, view, go, back, shoppingList, toggleBought, handleDepartureToggle, simDeps, setSimDeps,
-  openExpenseModal, openChainFinder, scanSpotNearby, openSettings, openDetail, winterRoutes, simRequest, launchGemini: launchGeminiPrice, edit, openKeyModal, intelAllRequest, twdJpyRate, setTwdJpyRate, radarRequest, addCustomSpot, removeCustomSpot, addShoppingItem, organize, runIntelAll,
+  openExpenseModal, openChainFinder: _legacyChainFinder, scanSpotNearby, openSettings, settingsRequest, openMap, openDetail, winterRoutes, simRequest, launchGemini: launchGeminiPrice, edit, openKeyModal, intelAllRequest, twdJpyRate, setTwdJpyRate, radarRequest, addCustomSpot, removeCustomSpot, addShoppingItem, organize, runIntelAll,
 }) => {
   const [radarOpen, setRadarOpen] = useState(false);
+  // 🔍 唯一的周邊搜：首頁紅鍵（目前位置）與站點頁午餐卡（本站→下一站中點）共用 SosSheet
+  const [sosAt, setSosAt] = useState(null);
+  const openChainFinder = (a, b) => {
+    if (!a) return;
+    const c = b ? { lat: (a.lat + b.lat) / 2, lon: (a.lon + b.lon) / 2, label: `${metroShort(a.name)}→${metroShort(b.name)} 中途` } : { lat: a.lat, lon: a.lon, label: metroShort(a.name) };
+    haptic(); setSosAt(c);
+  };
   const [radarDay, setRadarDay] = useState(null);
   useEffect(() => { if (radarRequest) { setRadarDay(null); setRadarOpen(true); } }, [radarRequest]);
   const openRadar = (dayIdx) => { setRadarDay(dayIdx); setRadarOpen(true); };
@@ -3867,7 +3842,7 @@ const MetroTab = ({
         </div>
       )}
       {view.level === "ring" && (
-        <RingHome {...common} gpsOn={gpsOn} gps={gps} enableGps={enableGps} openSettings={openSettings} openKeyModal={openKeyModal} twdJpyRate={twdJpyRate} setTwdJpyRate={setTwdJpyRate} showToast={showToast}
+        <RingHome {...common} gpsOn={gpsOn} gps={gps} enableGps={enableGps} openSettings={openSettings} settingsRequest={settingsRequest} openMap={openMap} openKeyModal={openKeyModal} twdJpyRate={twdJpyRate} setTwdJpyRate={setTwdJpyRate} showToast={showToast}
           openSim={() => setSimOpen(true)} shoppingList={shoppingList} />
       )}
       {view.level === "day" && <DayLine {...common} dayIdx={view.day} openDetail={openDetail} depart={depart} winterRoutes={winterRoutes} organize={organize} openKeyModal={openKeyModal} showToast={showToast} />}
@@ -3884,6 +3859,7 @@ const MetroTab = ({
           )}
         </div>
       )}
+      {sosAt && <SosSheet center={sosAt} close={() => setSosAt(null)} />}
       {radarOpen && <EventRadar tripData={liveData} initialDay={radarDay} close={() => setRadarOpen(false)} openKeyModal={openKeyModal} showToast={showToast} addCustomSpot={addCustomSpot} organize={organize} addShoppingItem={addShoppingItem} st={st} sim={sim} go={go} />}
       {simOpen && <SimSheet sim={sim} setSim={setSim} close={() => setSimOpen(false)} tripData={tripData} />}
     </div>
@@ -4176,7 +4152,7 @@ const IntelCard = ({ s, day, arr, dep, mode, next, edit, dayIdx, nSpots, runAll,
       o.at = Date.now();
       const all = loadIntel(); all[s.id] = o; saveIntel(all);
       setIntel(o);
-      if (edit && applyIntelTicket(s, o, edit.ticketOverrides, edit.setTicketOverrides)) showToast && showToast(`票價已填入：大人 ¥${o.ticket_adult}・小孩 ¥${o.ticket_child || 0}`);
+      if (edit && applyIntelTicket(s, o, edit.ticketOverrides, edit.setTicketOverrides)) showToast && showToast(`票價已填入：大人 ${CUR.sym}${o.ticket_adult}・小孩 ${CUR.sym}${o.ticket_child || 0}`);
     } catch (e) {
       if (/NO_API_KEY|BAD_API_KEY/.test(e.message)) openKeyModal && openKeyModal(true);
       else showToast && showToast(e.message.startsWith("QUOTA") ? "Gemini 配額用完，請稍後再試" : /TIMEOUT/.test(e.message) ? "逾時，請再按一次" : "查核失敗：" + e.message);
@@ -4193,7 +4169,7 @@ const IntelCard = ({ s, day, arr, dep, mode, next, edit, dayIdx, nSpots, runAll,
   ) : null;
   const when = intel && intel.at ? new Date(intel.at) : null;
   const hotel = isHotel(s.name);
-  const ticketText = intel && !hotel ? (intel.ticket_adult === 0 ? `免費${intel.ticket_note ? "・" + intel.ticket_note : ""}` : Number.isFinite(Number(intel.ticket_adult)) && intel.ticket_adult !== null && intel.ticket_adult !== undefined ? `大人 ¥${intel.ticket_adult}・小孩 ¥${intel.ticket_child ?? 0}${intel.ticket_note ? "・" + intel.ticket_note : ""}` : (intel.ticket_note || "")) : "";
+  const ticketText = intel && !hotel ? (intel.ticket_adult === 0 ? `免費${intel.ticket_note ? "・" + intel.ticket_note : ""}` : Number.isFinite(Number(intel.ticket_adult)) && intel.ticket_adult !== null && intel.ticket_adult !== undefined ? `大人 ${CUR.sym}${intel.ticket_adult}・小孩 ${CUR.sym}${intel.ticket_child ?? 0}${intel.ticket_note ? "・" + intel.ticket_note : ""}` : (intel.ticket_note || "")) : "";
   const ticketApplied = intel && edit && edit.ticketOverrides && edit.ticketOverrides[s.id] && edit.ticketOverrides[s.id].ai;
   return (
     <SectionCard color="#1767B3" title="⚡ 本站情報" right={when ? `查核於 ${when.getMonth() + 1}/${when.getDate()}` : "營業・票價・特展・停車・路況・購物"}>
@@ -4364,7 +4340,7 @@ const EventRadar = ({ tripData, close, openKeyModal, showToast, addCustomSpot, a
 
 // ⚙️ 設定：金鑰、匯率、旅伴、資料備份（不常動的底層設定）
 const BACKUP_KEYS = ["stays", "departures", "modes", "expenses", "trip_spot_tickets", "ticket_overrides", "shopping_list", "start_times", "checklist_state", "metro_intel", "metro_stores", "metro_arrivals", "metro_checkout", "metro_fuel", "metro_custom", "metro_order", "metro_skip", "metro_events", "twd_jpy_rate", "travelers"];
-const SettingsSheet = ({ close, openKeyModal, twdJpyRate, setTwdJpyRate, showToast }) => {
+const SettingsSheet = ({ close, openKeyModal, twdJpyRate, setTwdJpyRate, showToast, openMap, openSim }) => {
   const [trav, setTrav] = useState(() => localStorage.getItem("travelers") || window.TRAVELERS || "");
   const [rate, setRate] = useState(String(twdJpyRate || ""));
   const hasKey = !!localStorage.getItem("gemini_api_key");
@@ -4421,7 +4397,11 @@ const SettingsSheet = ({ close, openKeyModal, twdJpyRate, setTwdJpyRate, showToa
   const input = { minHeight: 44, borderRadius: 12, border: `2px solid ${METRO.line}`, padding: "0 12px", fontSize: 14, fontFamily: "inherit", color: METRO.ink, background: "#fff", width: "100%", boxSizing: "border-box" };
   return (
     <Sheet title="設定" close={close}>
-      <div style={{ fontSize: 12, color: METRO.sub, marginTop: -6 }}>不常改的底層設定。旅途工具在底部「更多」。</div>
+      <div style={{ fontSize: 12, color: METRO.sub, marginTop: -6 }}>不常用的工具與底層設定都在這裡。</div>
+      {(openMap || openSim) && <div style={{ display: "flex", gap: 6 }}>
+        {openMap && <PillBtn onClick={() => { close(); openMap(); }}>🗺️ 全程地圖預覽</PillBtn>}
+        {openSim && <PillBtn onClick={openSim}>🎮 試玩旅途中畫面</PillBtn>}
+      </div>}
       <div style={{ ...row, borderTop: 0 }}>
         <div style={{ fontSize: 13, fontWeight: 900 }}>🔑 Gemini API 金鑰 <span style={{ fontSize: 11, color: hasKey ? "#0B5E36" : "#8A1C12", fontWeight: 700 }}>{hasKey ? "已設定" : "未設定（AI 查核、找賣家、估票價都需要）"}</span></div>
         <PillBtn onClick={() => { close(); openKeyModal(true); }}>{hasKey ? "更換金鑰" : "設定金鑰"}</PillBtn>
@@ -4456,7 +4436,7 @@ const SettingsSheet = ({ close, openKeyModal, twdJpyRate, setTwdJpyRate, showToa
 };
 
 // 🩹 順路補給：以「目前位置」在 Google 地圖搜尋（地圖自己定位，不需要本 App 的 GPS 權限）
-const SOS_GROUPS = [
+const SOS_GROUPS_DEFAULT = [
   { title: "🎮 小學生＆爸爸尋寶", items: [
     ["🧱", "玩具／樂高", "おもちゃ屋"], ["♻️", "二手店", "ホビーオフ"], ["🕵️", "駿河屋", "駿河屋"],
     ["✏️", "文具", "文房具店"], ["🎰", "扭蛋", "ガチャガチャ"], ["🛒", "唐吉訶德", "ドン・キホーテ"],
@@ -4476,15 +4456,15 @@ const Sheet = ({ title, close, children }) => (
     </div>
   </div>
 );
-const SosSheet = ({ close }) => (
-  <Sheet title="周邊搜・順路找" close={close}>
-    <div style={{ fontSize: 12, color: METRO.sub }}>用目前位置在 Google 地圖搜最近的店，開車時請讓副駕操作</div>
-    {(window.SOS_GROUPS || SOS_GROUPS).map((g) => (
+const SosSheet = ({ close, center }) => (
+  <Sheet title={center ? "順路找・" + center.label : "周邊搜・順路找"} close={close}>
+    <div style={{ fontSize: 12, color: METRO.sub }}>{center ? `以「${center.label}」為中心在 Google 地圖搜，開車時請讓副駕操作` : "用目前位置在 Google 地圖搜最近的店，開車時請讓副駕操作"}</div>
+    {(window.SOS_GROUPS || SOS_GROUPS_DEFAULT).map((g) => (
       <div key={g.title} style={{ display: "flex", flexDirection: "column", gap: 8 }}>
         <div style={{ fontSize: 13, fontWeight: 900 }}>{g.title}</div>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 8 }}>
           {g.items.map(([ic, name, q]) => (
-            <a key={q} href={mapsSearchHere(q)} target="_blank" rel="noreferrer" onClick={() => haptic()}
+            <a key={q} href={center ? mapsSearchNear(q, center.lat, center.lon) : mapsSearchHere(q)} target="_blank" rel="noreferrer" onClick={() => haptic()}
               style={{ minHeight: 52, borderRadius: 14, border: `2px solid ${METRO.line}`, background: "#fff", display: "flex", alignItems: "center", gap: 10, padding: "0 12px", textDecoration: "none", color: METRO.ink }}>
               <span style={{ fontSize: 22 }}>{ic}</span>
               <span style={{ display: "flex", flexDirection: "column", minWidth: 0 }}><span style={{ fontSize: 14, fontWeight: 900 }}>{name}</span><span style={{ fontSize: 11, color: METRO.sub, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{q}</span></span>
@@ -4496,25 +4476,17 @@ const SosSheet = ({ close }) => (
     <div style={{ fontSize: 11, color: METRO.sub }}>{window.AI_CONTEXT ? AIX().emergency : "日本緊急電話：警察 110・救護車／消防 119。租車故障請打 ORIX 078-261-0543（免付費 0120-29-1543）。"}</div>
   </Sheet>
 );
-const CHECKOUT_ITEMS = ["護照・錢包", "車鑰匙・ETC 卡", "充電線・行動電源", "小孩外套・手套", "冰箱裡的食物", "浴室・榻榻米上的東西", "停車場付費／取車"];
-const HotelSheet = ({ dayIdx, close, tripData }) => {
-  const hotels = window.HOTEL_INFO || [];
-  const tonight = hotels[dayIdx] || null;
-  const last = dayIdx > 0 ? hotels[dayIdx - 1] : null;
-  const [checked, setChecked] = useState(() => { try { return JSON.parse(localStorage.getItem("metro_checkout") || "{}"); } catch (e) { return {}; } });
-  const key = (i) => dayIdx + "-" + i;
-  const toggle = (i) => setChecked((p) => { const n = { ...p, [key(i)]: !p[key(i)] }; try { localStorage.setItem("metro_checkout", JSON.stringify(n)); } catch (e) {} return n; });
-  const HotelCard = ({ h, label, color }) => h ? (
+const HotelCard = ({ h, label, color }) => h ? (
     <div style={{ background: "#F7F4EE", borderRadius: 16, padding: 12, display: "flex", flexDirection: "column", gap: 8 }}>
       <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
         <span style={{ height: 22, padding: "0 8px", borderRadius: 11, background: color, color: "#fff", fontSize: 11, fontWeight: 900, display: "flex", alignItems: "center" }}>{label}</span>
         <span style={{ fontSize: 12, color: METRO.sub }}>{h.day}</span>
       </div>
       <div style={{ fontSize: 16, fontWeight: 900 }}>{h.name}</div>
-      <div style={{ fontSize: 12, color: METRO.sub, userSelect: "all" }}>{h.jpName}<br />{h.jpAddress}</div>
+      <div style={{ fontSize: 12, color: METRO.sub, userSelect: "all" }}>{h.jpName && h.jpName !== h.name ? <>{h.jpName}<br /></> : null}{h.jpAddress}</div>
       {h.booking ? (
         <div style={{ fontSize: 12, lineHeight: "19px", background: "#fff", borderRadius: 10, padding: "6px 10px" }}>
-          ✅ 已訂（{h.booking.via}）・{h.booking.room}<br />入住 {h.booking.checkIn} 起・退房 {h.booking.checkOut} 前{h.booking.price ? "・¥" + h.booking.price.toLocaleString() : ""}<br />{h.booking.pay}・{h.booking.cancelBy}
+          ✅ 已訂（{h.booking.via}）・{h.booking.room}<br />入住 {h.booking.checkIn} 起・退房 {h.booking.checkOut} 前{h.booking.price ? "・" + CUR.sym + h.booking.price.toLocaleString() : ""}<br />{h.booking.pay}・{h.booking.cancelBy}
         </div>
       ) : (
         <div style={{ fontSize: 12, fontWeight: 900, color: "#8A1C12", background: "#FFD2CC", borderRadius: 10, padding: "6px 10px" }}>❗ 尚未訂房</div>
@@ -4526,6 +4498,32 @@ const HotelSheet = ({ dayIdx, close, tripData }) => {
       </div>
     </div>
   ) : null;
+const CheckoutList = () => {
+  const dayIdx = Math.max(1, (window.RAW_KML_DATA || []).length - 1);
+  const [checked, setChecked] = useState(() => { try { return JSON.parse(localStorage.getItem("metro_checkout") || "{}"); } catch (e) { return {}; } });
+  const key = (i) => dayIdx + "-" + i;
+  const toggle = (i) => setChecked((p) => { const n = { ...p, [key(i)]: !p[key(i)] }; try { localStorage.setItem("metro_checkout", JSON.stringify(n)); } catch (e) {} return n; });
+  const done = CHECKOUT_ITEMS.filter((t, i) => checked[key(i)]).length;
+  return (
+    <div className="glass-panel p-5 rounded-3xl bg-white border-gray-100 shadow-lg">
+      <div className="flex items-center justify-between mb-2"><h3 className="font-black text-lg text-gray-800">🧳 退房檢查</h3><span className="text-xs font-bold text-gray-400">{done}/{CHECKOUT_ITEMS.length}</span></div>
+      {CHECKOUT_ITEMS.map((t, i) => (
+        <button key={i} onClick={() => { haptic(); toggle(i); }} className="w-full flex items-center gap-3 min-h-[44px] text-left">
+          <span className={`w-6 h-6 rounded-md border-2 flex items-center justify-center text-white text-xs ${checked[key(i)] ? "bg-[#13804A] border-[#13804A]" : "border-gray-300"}`}>{checked[key(i)] ? "✓" : ""}</span>
+          <span className={`text-sm ${checked[key(i)] ? "line-through text-gray-400" : "text-gray-800"}`}>{t}</span>
+        </button>
+      ))}
+    </div>
+  );
+};
+const CHECKOUT_ITEMS = window.CHECKOUT_ITEMS || ["護照・錢包", "車鑰匙・ETC 卡", "充電線・行動電源", "小孩外套・手套", "冰箱裡的食物", "浴室・榻榻米上的東西", "停車場付費／取車"];
+const HotelSheet = ({ dayIdx, close, tripData }) => {
+  const hotels = window.HOTEL_INFO || [];
+  const tonight = hotels[dayIdx] || null;
+  const last = dayIdx > 0 ? hotels[dayIdx - 1] : null;
+  const [checked, setChecked] = useState(() => { try { return JSON.parse(localStorage.getItem("metro_checkout") || "{}"); } catch (e) { return {}; } });
+  const key = (i) => dayIdx + "-" + i;
+  const toggle = (i) => setChecked((p) => { const n = { ...p, [key(i)]: !p[key(i)] }; try { localStorage.setItem("metro_checkout", JSON.stringify(n)); } catch (e) {} return n; });
   return (
     <Sheet title="飯店快捷" close={close}>
       <HotelCard h={tonight} label="今晚" color="#7B52AE" />
@@ -4558,8 +4556,9 @@ const returnMode = (st, tripData) => {
   const left = timeToMinutes(retTime) - st.nowMin;
   return { retIdx: ret, retTime, left, spot: spots[ret] };
 };
-const RingHome = ({ tripData, st, now, go, gpsOn, gps, enableGps, openSettings, openSim, shoppingList, sim, delay, openKeyModal, twdJpyRate, setTwdJpyRate, showToast }) => {
-  const [sheet, setSheet] = useState(null); // "sos" | "hotel"
+const RingHome = ({ tripData, st, now, go, gpsOn, gps, enableGps, openSettings, settingsRequest, openMap, openSim, shoppingList, sim, delay, openKeyModal, twdJpyRate, setTwdJpyRate, showToast }) => {
+  const [sheet, setSheet] = useState(null); // "sos" | "hotel" | "settings"
+  useEffect(() => { if (settingsRequest) setSheet("settings"); }, [settingsRequest]);
   const rm = returnMode(st, tripData);
   const [fuelDone, setFuelDone] = useState(() => localStorage.getItem("metro_fuel") === "1");
   const { flat } = st;
@@ -4815,7 +4814,7 @@ const RingHome = ({ tripData, st, now, go, gpsOn, gps, enableGps, openSettings, 
       </div>
       {sheet === "sos" && <SosSheet close={() => setSheet(null)} />}
       {sheet === "hotel" && <HotelSheet dayIdx={st.dayIdx} tripData={tripData} close={() => setSheet(null)} />}
-      {sheet === "settings" && <SettingsSheet close={() => setSheet(null)} openKeyModal={openKeyModal} twdJpyRate={twdJpyRate} setTwdJpyRate={setTwdJpyRate} showToast={showToast} />}
+      {sheet === "settings" && <SettingsSheet openMap={openMap} openSim={() => { setSheet(null); openSim && openSim(); }} close={() => setSheet(null)} openKeyModal={openKeyModal} twdJpyRate={twdJpyRate} setTwdJpyRate={setTwdJpyRate} showToast={showToast} />}
 
       {/* 提醒膠囊（旅途中才有） */}
       {!isPre && !isDone && <div style={{ display: "flex", gap: 8, padding: "8px 16px 0" }}>
@@ -5443,7 +5442,7 @@ const StationPage = ({
           const inputSt = { width: 84, minHeight: 40, borderRadius: 10, border: `2px solid ${METRO.line}`, fontFamily: MONO, fontSize: 15, fontWeight: 700, textAlign: "right", padding: "0 8px", color: METRO.ink, background: locked ? "#F7F4EE" : "#fff" };
           const stepBtn = { width: 40, height: 40, borderRadius: 10, border: `2px solid ${METRO.line}`, background: "#fff", fontFamily: "inherit", fontSize: 18, fontWeight: 900, color: METRO.ink };
           return (
-            <SectionCard color="#5E584E" title="本站設定" right={spent ? `已記帳 ¥${spent.toLocaleString()}` : null}>
+            <SectionCard color="#5E584E" title="本站設定" right={spent ? `已記帳 ${CUR.sym}${spent.toLocaleString()}` : null}>
               <div style={{ fontSize: 12, color: METRO.sub }}>停留時間（改了後面各站時間會重算）</div>
               <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
                 {(stayOpts.includes(curStay) ? stayOpts : [...stayOpts, curStay]).map((o) => (
@@ -5468,7 +5467,7 @@ const StationPage = ({
                 </button>
               )}
               {showTicket && <div style={{ borderTop: `1px solid ${METRO.line}`, paddingTop: 8, display: "flex", flexDirection: "column", gap: 8 }}>
-                <div style={{ fontSize: 12, color: METRO.sub }}>{hotel ? "房價（每晚）與房數" : "門票（日圓）與人數"}{locked ? (hotel ? "・已訂房價，不可改" : "・已確認免費") : freeKind ? "・手動輸入的入場費" : ""}</div>
+                <div style={{ fontSize: 12, color: METRO.sub }}>{hotel ? "房價（每晚）與房數" : `門票（${CUR.label}）與人數`}{locked ? (hotel ? "・已訂房價，不可改" : "・已確認免費") : freeKind ? "・手動輸入的入場費" : ""}</div>
                 <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                   <span style={{ fontSize: 13, width: 36 }}>{hotel ? "房價" : "成人"}</span>
                   <input type="number" inputMode="numeric" value={tk.adult || ""} placeholder="0" disabled={locked} onChange={(e) => setPrice("adult", e.target.value)} style={inputSt} />
@@ -5487,7 +5486,7 @@ const StationPage = ({
                     <button style={stepBtn} onClick={() => { haptic(); edit.updateSpotTicketCount(s.id, "child", 1); }}>＋</button>
                   </div>
                 )}
-                <div style={{ fontSize: 12, color: METRO.sub }}>小計 ¥{(hotel ? tk.adult * cnt.adult : tk.adult * cnt.adult + tk.child * cnt.child).toLocaleString()}{freeKind ? "" : "・按下方「⚡ 查核本站」會自動填票價"}</div>
+                <div style={{ fontSize: 12, color: METRO.sub }}>小計 {CUR.sym}{(hotel ? tk.adult * cnt.adult : tk.adult * cnt.adult + tk.child * cnt.child).toLocaleString()}{freeKind ? "" : "・按下方「⚡ 查核本站」會自動填票價"}</div>
               </div>}
             </SectionCard>
           );
@@ -5563,7 +5562,7 @@ const StationPage = ({
                   )}
                   <PillBtn href={mapsSearchNear((window.LUNCH_UI && window.LUNCH_UI.takeoutQ) || "コンビニ", lunch.mid.lat, lunch.mid.lon)}>{(window.LUNCH_UI && window.LUNCH_UI.takeoutLabel) || "外帶飯糰（超商）"}</PillBtn>
                 </div>
-                <PillBtn onClick={() => openChainFinder(s, next)} style={{ borderStyle: "dashed" }}>更多連鎖店（吉野家・松屋…）</PillBtn>
+                <PillBtn onClick={() => openChainFinder(s, next)} style={{ borderStyle: "dashed" }}>{window.LUNCH_UI ? "🔍 順路周邊搜（小吃・超商・加油）" : "更多連鎖店（吉野家・松屋…）"}</PillBtn>
               </div>
             )}
           </SectionCard>
@@ -5943,7 +5942,7 @@ function App() {
   const [selectedDailyStats, setSelectedDailyStats] = useState(null);
   const [expenseForm, setExpenseForm] = useState({
     category: "food",
-    currency: "JPY",
+    currency: CUR.code,
     amount: "",
     note: "",
   });
@@ -6021,7 +6020,7 @@ function App() {
   useEffect(() => {
     const fetchRate = async () => {
       // 基準幣別 = JPY（日本行程：消費/門票/住宿皆以日圓入帳）
-      if (selectedCurrency.code === "JPY") {
+      if (selectedCurrency.code === CUR.code) {
         setExchangeRate(1);
         return;
       }
@@ -6248,7 +6247,7 @@ function App() {
 
   const openExpenseModal = (spot) => {
     setCurrentEditingSpot(spot);
-    setExpenseForm({ category: "food", currency: "JPY", amount: "", note: "" });
+    setExpenseForm({ category: "food", currency: CUR.code, amount: "", note: "" });
     setPendingReceipts([]);
     setIsModalOpen(true);
   };
@@ -6410,13 +6409,15 @@ function App() {
     const timestamp = Date.now();
     // 非日圓 → 以 twdJpyRate 轉為日圓入帳，保留原幣金額顯示
     const toJpyRec = (amt, cur) => {
+      if (!cur || cur === CUR.code) return { amount: amt, currency: CUR.code };
+      if (CUR.code === "TWD" && cur === "JPY") return { amount: Math.round(amt / (twdJpyRate || 4.6)), origAmount: amt, currency: "JPY" };
       if (cur === "TWD") {
         return { amount: Math.round(amt * twdJpyRate), origAmount: amt, currency: "TWD" };
       }
       return { amount: amt, currency: "JPY" };
     };
     if (expenseForm.amount) {
-      const conv = toJpyRec(parseInt(expenseForm.amount), expenseForm.currency || "JPY");
+      const conv = toJpyRec(parseInt(expenseForm.amount), expenseForm.currency || CUR.code);
       newRecs.push({
         id: timestamp,
         timestamp: timestamp,
@@ -6434,7 +6435,7 @@ function App() {
           );
           if (!isNaN(aiDate.getTime())) recordTime = aiDate.getTime();
         }
-        const conv = toJpyRec(parseInt(p.amount), p.currency || "JPY");
+        const conv = toJpyRec(parseInt(p.amount), p.currency || CUR.code);
         newRecs.push({
           id: timestamp + idx + 100,
           timestamp: recordTime,
@@ -6456,7 +6457,7 @@ function App() {
         )
       );
       if (dups.length > 0) {
-        const list = dups.map((d) => "・" + d.note + "（¥" + d.amount + "）").join("\n");
+        const list = dups.map((d) => "・" + d.note + "（" + CUR.sym + d.amount + "）").join("\n");
         if (
           !window.confirm(
             "⚠️ 疑似重複入帳（同金額＋同時間已存在，可能是同一張收據掃了兩次）：\n\n" +
@@ -6601,7 +6602,7 @@ function App() {
     return (
       '<div style="font-family:\'Microsoft JhengHei\',\'PingFang TC\',Arial,sans-serif;max-width:640px;margin:0 auto;padding:8px;color:#4a4a4a">' +
       '<h2 style="margin:0 0 4px;font-size:20px;color:#4a4a4a">🗾 ' + esc(window.APP_TITLE || "旅遊") + " 花費明細</h2>" +
-      '<p style="margin:0 0 16px;font-size:12px;color:#999">製表時間 ' + genTime + "・幣別 JPY（日圓）</p>" +
+      '<p style="margin:0 0 16px;font-size:12px;color:#999">製表時間 ' + genTime + "・幣別 " + CUR.code + "（" + CUR.label + "）</p>" +
       '<table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;background:#faf7f5;border:1px solid #eee;border-radius:6px">' +
       '<tr><td style="padding:12px 14px"><div style="font-size:12px;color:#999">總花費</div>' +
       '<div style="font-size:26px;font-weight:bold;color:#c76b68;font-family:Consolas,monospace">' + yen(grand) + "</div>" +
@@ -6684,12 +6685,12 @@ function App() {
             setPendingReceipts((prev) =>
               prev.map((p) => {
                 if (p.id !== item.id) return p;
-                const cur = json.currency || "JPY";
+                const cur = json.currency || CUR.code;
                 const displayNote =
                   (json.date ? json.date + " " : "") +
                   (json.store || "未命名收據") +
                   (json.items ? "・" + json.items : "") +
-                  (cur !== "JPY" ? "（" + cur + " " + json.amount + "）" : "");
+                  (cur !== CUR.code ? "（" + cur + " " + json.amount + "）" : "");
                 return {
                   ...p,
                   isAnalyzing: false,
@@ -6785,6 +6786,9 @@ function App() {
   };
 
   const [showMore, setShowMore] = useState(false);
+  const [settingsRequest, setSettingsRequest] = useState(0);
+  const openSettingsAnywhere = () => { setActiveTab("metro"); metroGo(null, "root"); setTimeout(() => setSettingsRequest(Date.now()), 50); };
+  const [listMode, setListMode] = useState(() => { try { return localStorage.getItem("list_mode") || "check"; } catch (e) { return "check"; } });
   const [metroSimRequest, setMetroSimRequest] = useState(0);
   const [intelAllRequest, setIntelAllRequest] = useState(0);
   const [radarRequest, setRadarRequest] = useState(0);
@@ -6880,13 +6884,13 @@ function App() {
             </details>
 
             {/* AI 附近掃描 */}
-            <button
+            {FEAT("listRadar", false) && <button
               onClick={() => triggerGPSRadar()}
               disabled={scanningNearby}
               className="w-full py-4 bg-amber-500 text-white rounded-xl font-black text-lg shadow-lg active:scale-95 transition-transform disabled:opacity-50 mb-3"
             >
               {scanningNearby ? "🔍 AI 掃描中..." : "📡 AI 購物雷達（GPS 即時定位）"}
-            </button>
+            </button>}
 
             {/* AI 結果 */}
             {nearbyResults && (
@@ -6942,14 +6946,14 @@ function App() {
             <button onClick={() => setActiveTab("metro")} aria-label="回路線圖" className="w-11 h-11 rounded-full flex items-center justify-center" style={{ color: "#1F1D1A" }}>
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="M15 6l-6 6 6 6" /></svg>
             </button>
-            <div className="flex-1 font-black text-[17px]" style={{ color: "#1F1D1A" }}>{{ info: "資訊", list: "清單", stats: "統計", guard: window.HIGHWAY_INFO ? "路況" : "防雷", compare: "比價", }[activeTab] || window.APP_TITLE}</div>
-            <CurrencySwitcher
+            <div className="flex-1 font-black text-[17px]" style={{ color: "#1F1D1A" }}>{{ info: "路況住宿", list: "清單", stats: "記帳", guard: window.HIGHWAY_INFO ? "路況" : "防雷", compare: "比價", }[activeTab] || window.APP_TITLE}</div>
+            {FEAT("currency") && <CurrencySwitcher
               selectedCurrency={selectedCurrency}
               exchangeRate={exchangeRate}
               isRateLoading={isRateLoading}
               setSelectedCurrency={setSelectedCurrency}
-            />
-            <button onClick={() => setShowMore(true)} aria-label="更多" className="w-11 h-11 rounded-full flex items-center justify-center border-2 bg-white" style={{ borderColor: "#E6E0D5", color: "#5E584E" }}>
+            />}
+            <button onClick={openSettingsAnywhere} aria-label="設定" className="w-11 h-11 rounded-full flex items-center justify-center border-2 bg-white" style={{ borderColor: "#E6E0D5", color: "#5E584E" }}>
               <Icons.Settings size={20} />
             </button>
           </div>
@@ -6969,7 +6973,9 @@ function App() {
           openExpenseModal={openExpenseModal}
           openChainFinder={openChainFinder}
           scanSpotNearby={scanSpotNearby}
-          openSettings={() => setShowMore(true)}
+          openSettings={openSettingsAnywhere}
+          settingsRequest={settingsRequest}
+          openMap={handleOpenMap}
           openKeyModal={setIsKeyModalOpen}
           twdJpyRate={twdJpyRate}
           setTwdJpyRate={setTwdJpyRate}
@@ -7031,78 +7037,27 @@ function App() {
         )}
         {activeTab === "list" && (
           <div className="space-y-6 pb-20">
+            <div className="flex gap-2 p-1 rounded-2xl bg-white border-2 border-gray-200">
+              {[["check", "🎒 行前與退房檢核"], ["shop", "🍜 必吃與採買"]].map(([k, t]) => (
+                <button key={k} onClick={() => { haptic(); setListMode(k); try { localStorage.setItem("list_mode", k); } catch (e) {} }}
+                  className={`flex-1 min-h-[48px] rounded-xl font-black text-sm ${listMode === k ? "bg-[#1F1D1A] text-white" : "text-gray-500"}`}>{t}</button>
+              ))}
+            </div>
+            {listMode === "check" && <TripChecklist />}
+            {listMode === "check" && <CheckoutList />}
+            {listMode === "shop" && <>
             {FEAT("compare") && <button onClick={launchGeminiPriceCheck} className="w-full flex items-center gap-3 p-4 rounded-2xl bg-[#1C1B19] text-white text-left shadow-lg active:scale-[.98] transition-transform">
               <span className="text-3xl">📸</span>
               <span className="flex-1"><span className="block font-black text-base">拍照比價・抓地雷（手機 Gemini）</span><span className="block text-xs text-white/70">按一下 → 開啟 Gemini → 貼上指令 → 拍標價。算台幣、比台灣行情、提醒缺件盜版</span></span>
             </button>}
             <div className="glass-panel p-5 rounded-3xl bg-white border-gray-100 shadow-lg">
-              <h2 className="text-xl font-black text-gray-900 mb-3">🛒 購物清單</h2>
+              <h2 className="text-xl font-black text-gray-900 mb-3">{window.LIST_TITLE || "🛒 購物清單"}</h2>
               {shoppingBody}
             </div>
+            </>}
           </div>
         )}
       </main>
-      {/* 連鎖店搜尋面板 */}
-      {showChainPanel && chainMidpoint && (
-        <div className="fixed inset-0 z-50 bg-black/40 flex items-end justify-center" onClick={() => setShowChainPanel(false)}>
-          <div className="bg-white w-full max-w-lg rounded-t-3xl p-6 max-h-[85vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
-            <div className="flex justify-between items-center mb-1">
-              <h2 className="text-lg font-black text-gray-900">🍚 沿途連鎖店</h2>
-              <button onClick={() => setShowChainPanel(false)} className="p-2 text-gray-400"><Icons.X size={24} /></button>
-            </div>
-            <div className="text-xs text-gray-400 mb-1">{chainMidpoint.fromName} → {chainMidpoint.toName}</div>
-            <div className="bg-gray-50 rounded-lg px-3 py-2 mb-3 text-center text-sm">
-              📏 直達 <span className="font-black text-gray-900">{chainMidpoint.d1km} km</span>
-              {chainMidpoint.d1min != null && (
-                <span className="text-gray-500"> ・🚗 約 {chainMidpoint.d1min} 分</span>
-              )}
-              {chainMidpoint.passMinutes != null && (
-                <span className="text-gray-400 text-xs"> ・預計 {minutesToTimeStr(chainMidpoint.passMinutes)} 出發</span>
-              )}
-            </div>
-
-            <div className="text-[11px] text-gray-500 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 mb-3 leading-relaxed">
-              點品牌後會<b>自動複製關鍵字</b>並開啟 Google Maps 導航（目前位置 → {chainMidpoint.toName}）。
-              在 Maps 按「<b>⋮ 新增停靠站</b>」→ 長按<b>貼上</b>關鍵字，即可沿路線即時搜尋、自選分店。
-            </div>
-            {copiedChain && (
-              <div className="text-xs font-bold text-green-700 bg-green-50 border border-green-200 rounded-lg px-3 py-2 mb-3">
-                ✅ 已複製「{copiedChain}」，到 Maps 新增停靠站貼上即可
-              </div>
-            )}
-            <div className="space-y-2">
-              {[
-                { cat: "丼飯", label: "🍚 丼飯連鎖", box: "bg-orange-50 border-orange-200 text-orange-800", head: "text-orange-600" },
-                { cat: "超市", label: "🛒 超市", box: "bg-green-50 border-green-200 text-green-800", head: "text-green-600" },
-                { cat: "挖寶", label: "🎁 挖寶（二手）", box: "bg-purple-50 border-purple-200 text-purple-800", head: "text-purple-600" },
-                { cat: "文具", label: "✏️ 文具／生活雜貨", box: "bg-blue-50 border-blue-200 text-blue-800", head: "text-blue-600" },
-                { cat: "家電", label: "🔌 家電量販", box: "bg-purple-50 border-purple-200 text-purple-800", head: "text-purple-600" },
-                { cat: "超商", label: "🏪 超商", box: "bg-orange-50 border-orange-200 text-orange-800", head: "text-orange-600" },
-                { cat: "小吃", label: "🍜 小吃", box: "bg-amber-50 border-amber-200 text-amber-800", head: "text-amber-600" },
-                { cat: "親子", label: "🧸 親子", box: "bg-pink-50 border-pink-200 text-pink-800", head: "text-pink-600" },
-                { cat: "車", label: "🚗 車", box: "bg-gray-50 border-gray-200 text-gray-800", head: "text-gray-600" },
-                { cat: "醫", label: "💊 醫藥", box: "bg-rose-50 border-rose-200 text-rose-800", head: "text-rose-600" },
-              ].map((g) => {
-                const items = chains.filter((c) => c.cat === g.cat);
-                if (items.length === 0) return null;
-                return (
-                  <div key={g.cat}>
-                    <div className={`text-xs font-bold mb-2 ${g.head}`}>{g.label}</div>
-                    <div className="grid grid-cols-2 gap-2 mb-4">
-                      {items.map((c, i) => (
-                        <button key={i} onClick={() => launchChain(c, chainMidpoint)}
-                          className={`flex items-center gap-2 p-3 rounded-xl border-2 text-sm font-bold text-left active:scale-95 transition ${g.box}`}>
-                          <span className="text-lg">{c.icon}</span><span className="flex-1 min-w-0 truncate">{c.name}</span><span className="text-xs">🚗</span>
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* 購物清單浮動按鈕 */}
       {false && <button
@@ -7148,7 +7103,7 @@ function App() {
             activeTab === "info" ? "text-[#13804A]" : "hover:text-gray-900"
           }`}
         >
-          <Icons.LayoutGrid size={26} /> 資訊
+          <span className="text-[22px] leading-[26px]">🛣️</span> 路況住宿
         </button>
         <button
           onClick={() => { if (SHOP_BASE) syncNow(); setActiveTab("list"); }}
@@ -7164,41 +7119,14 @@ function App() {
           )}
         </button>
         <button
-          onClick={() => setShowMore(true)}
+          onClick={() => setActiveTab("stats")}
           className={`flex flex-col items-center gap-1 p-2 min-w-[64px] ${
-            ["stats", "guard", "compare"].includes(activeTab) ? "text-[#13804A]" : "hover:text-gray-900"
+            activeTab === "stats" ? "text-[#13804A]" : "hover:text-gray-900"
           }`}
         >
-          <svg width="26" height="26" viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="2.4" /><circle cx="12" cy="12" r="2.4" /><circle cx="19" cy="12" r="2.4" /></svg> 更多
+          <span className="text-[22px] leading-[26px]">📊</span> 記帳
         </button>
       </div>}
-      {showMore && (
-        <div className="fixed inset-0 z-[60] bg-black/40 flex items-end" onClick={() => setShowMore(false)}>
-          <div className="bg-white w-full rounded-t-3xl p-4" style={{ paddingBottom: "calc(16px + env(safe-area-inset-bottom))" }} onClick={e => e.stopPropagation()}>
-            <div className="w-10 h-1 rounded bg-gray-300 mx-auto mb-3" />
-            <div className="text-xs text-gray-400 px-2 mb-2">不常用的功能都收在這裡（AI 查核、票價、活動雷達已併進站點頁與當日頁）</div>
-            {[
-              ["stats", "📊", "統計", "總花費・每日明細・寄帳單"],
-              window.HIGHWAY_INFO ? ["guard", "🛣️", "路況與應變", "國 5 雪隧出門時間・高乘載・1968 路況・緊急電話"] : ["guard", "❄️", "全線雪況與應變", "氣象廳降雪雷達・大雪封路替代道路・航班／飯店聯絡"],
-              ...(FEAT("compare") ? [["compare", "💱", "現場比價", "拍價格標算退稅台幣・查 momo／蝦皮行情・待買清單"]] : []),
-            ].map(([t, ic, name, desc]) => (
-              <button key={t} onClick={() => { setShowMore(false); setActiveTab(t); }} className="w-full flex items-center gap-3 p-3 rounded-2xl hover:bg-gray-50 text-left min-h-[56px]">
-                <span className="text-2xl w-9 text-center">{ic}</span>
-                <span className="flex-1"><span className="block font-black text-gray-800">{name}</span><span className="block text-xs text-gray-400">{desc}</span></span>
-              </button>
-            ))}
-            <button onClick={() => { setShowMore(false); handleOpenMap(); }} className="w-full flex items-center gap-3 p-3 rounded-2xl hover:bg-gray-50 text-left min-h-[56px]">
-              <span className="text-2xl w-9 text-center">🗺️</span>
-              <span className="flex-1"><span className="block font-black text-gray-800">全程地圖預覽</span><span className="block text-xs text-gray-400">在地圖上看所有站點</span></span>
-            </button>
-            <button onClick={() => { setShowMore(false); setMetroSimRequest(Date.now()); setActiveTab("metro"); }} className="w-full flex items-center gap-3 p-3 rounded-2xl hover:bg-gray-50 text-left min-h-[56px]">
-              <span className="text-2xl w-9 text-center">🎮</span>
-              <span className="flex-1"><span className="block font-black text-gray-800">試玩旅途中畫面</span><span className="block text-xs text-gray-400">出發前預覽「我在這」的樣子</span></span>
-            </button>
-            <div className="text-xs text-gray-400 px-2 pt-2">金鑰、匯率、旅伴、備份 → 路線圖右上角 ⚙️</div>
-          </div>
-        </div>
-      )}
       <ApiKeyModal
         isOpen={isKeyModalOpen}
         onClose={() => setIsKeyModalOpen(false)}

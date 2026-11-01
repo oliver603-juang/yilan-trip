@@ -15,6 +15,7 @@ window.METRO_ON = ["#FFFFFF", "#FFFFFF"];
 window.APP_TITLE = "2026 宜蘭頭城親子 2 日";
 window.APP_LOGO = "icon-192.png";
 window.DEFAULT_CURRENCY = "TWD";
+window.BASE_CUR = { code: "TWD", sym: "NT$", label: "台幣" }; // 記帳、票價、統計都以台幣入帳
 window.CURRENCY_OPTIONS = [{ code: "TWD", symbol: "NT$", label: "台幣" }];
 window.STAY_OPTIONS = ["0 min", "20 min", "30 min", "40 min", "50 min", "1 hr", "1.5 hr", "2 hr", "2.5 hr", "3 hr", "Overnight", "-"];
 
@@ -49,6 +50,10 @@ window.HIGHWAY_INFO = {
   ],
 };
 window.ROUTE_RISK_LABEL = "國5";
+
+// 退房檢查（清單分頁「🎒 行前與退房檢核」）
+window.CHECKOUT_ITEMS = ["手機・錢包・車鑰匙", "充電線・行動電源", "泳裝（風呂後容易忘在浴室）", "小孩外套・拖鞋", "玩沙工具・濕衣袋", "冰箱裡的宵夜飲料", "地下停車場取車"];
+window.LIST_TITLE = "🍜 必吃小吃與全聯採買";
 
 // 返家倒數（取代還車倒數）：最後一天進入「北返」前幾站時顯示
 window.RETURN_INFO = { matchRe: "北返|返家|回家", deadline: "16:30", label: "到家", lateText: "（目標 15:00 從羅東上國 5、16:30 前到家）", fuelNote: "上國 5 前在羅東加油" };
@@ -126,7 +131,7 @@ window.CAR_RENTAL_INFO = null;
 // 6. 住宿資訊
 window.HOTEL_INFO = [
   { day: "11/22", name: "OA Hotel 烏石港", location: "烏石港", desc: "海景風呂、地下停車場", lat: 24.871532, lon: 121.839582, mapCode: "",
-    jpName: "OA Hotel", zip: "261004", jpAddress: "宜蘭縣頭城鎮烏石港路 301 號", tel: "03-977-1166",
+    jpName: "", zip: "261004", jpAddress: "宜蘭縣頭城鎮烏石港路 301 號", tel: "03-977-1166",
     booking: { via: "官網訂房（BBA26082421210011，陳榮芳）", room: "含早餐房型", guests: "2 大 2 小（9、11 歲）", checkIn: "15:00（14:30 可先寄行李）", checkOut: "11:00", price: 0, pay: "尚未扣款，現場結", cancelBy: "依訂房信" },
     note: "海景風呂 16:00–23:00（22:30 最後入場）入住當日免費，要帶泳裝。早餐 06:30–08:00／08:00–09:30。不提供牙刷、牙膏、梳子、棉花棒、刮鬍刀、浴帽、拖鞋。全館禁菸、禁空拍機。加棉被 $200／枕頭 $100／浴巾 $50。導航：國 5 頭城交流道右轉 → 青雲路 → 過蘭陽博物館 → 港口路右轉 → 烏石港路左轉 → 連大烏石港度假村左手邊黑色建築。" },
 ];

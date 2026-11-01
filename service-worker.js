@@ -1,4 +1,4 @@
-const APP_VERSION = '1'; // 與 index.html 的 ?v= 保持一致
+const APP_VERSION = '2'; // 與 index.html 的 ?v= 保持一致
 const CACHE_NAME = 'trip-2026-yilan-v' + APP_VERSION;
 const ASSETS_TO_CACHE = [
   './',
